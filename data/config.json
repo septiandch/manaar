@@ -1,0 +1,16 @@
+{
+	"title": "Masjid Al-Ikhlash",
+	"subtitle": "Villa Mutiara Cikarang Blok A",
+	"carouselDuration": 5,
+	"latitude": -6.2474466,
+	"longitude": 107.1484521,
+	"logo": "/uploads/logo.svg",
+	"updatedAt": "2026-02-21T06:02:52.324Z",
+	"beforeNotice": 1,
+	"beforeAdhan": 1,
+	"adhanDuration": 1,
+	"beforeIqamah": 1,
+	"prayerDuration": 1,
+	"jumuahDuration": 1,
+	"hijriAdj": -1
+}

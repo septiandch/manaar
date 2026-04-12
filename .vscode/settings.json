@@ -1,0 +1,9 @@
+{
+	"files.associations": {
+		"*.css": "tailwindcss"
+	},
+	"commentTranslate.multiLineMerge": true,
+
+	"js/ts.preferences.importModuleSpecifierEnding": "minimal",
+	"js/ts.preferences.importModuleSpecifier": "non-relative"
+}
