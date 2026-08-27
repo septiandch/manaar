@@ -1,4 +1,3 @@
-import { isRamadhan as checkRamadhan } from '@/components/date-clock/toHijri';
 import type { ConfigType } from '@/types/config';
 import { PrayerTimes as AdhanPrayerTimes, CalculationMethod, Coordinates, Madhab } from 'adhan';
 
@@ -192,8 +191,6 @@ export function createPrayerEngine(
 	): PrayerEventState {
 		const nowMs = now.getTime();
 		const adhanMs = adhanTime.getTime();
-		const isRamadhan = checkRamadhan(now);
-
 		if (isNoticePrayer(prayer)) {
 			const beforeNotice = adhanMs - (config?.beforeNotice || 0) * MINUTE;
 			const noticeStart = adhanMs;
@@ -223,7 +220,7 @@ export function createPrayerEngine(
 					nextTransition: new Date(noticeEnd)
 				};
 
-			return { prayer, state: 'IDLE', timeRemaining: 0, nextTransition: null };
+			return { prayer, state: 'FINISHED', timeRemaining: 0, nextTransition: null };
 		}
 
 		if (isJumuah(prayer, adhanTime)) {
@@ -263,7 +260,7 @@ export function createPrayerEngine(
 					nextTransition: prayerEnd
 				};
 
-			return { prayer, state: 'IDLE', timeRemaining: 0, nextTransition: null };
+			return { prayer, state: 'FINISHED', timeRemaining: 0, nextTransition: null };
 		}
 
 		const t = buildPrayerSequence(adhanTime, config);
@@ -308,7 +305,7 @@ export function createPrayerEngine(
 				nextTransition: t.prayerEnd
 			};
 
-		return { prayer, state: 'IDLE', timeRemaining: 0, nextTransition: null };
+		return { prayer, state: 'FINISHED', timeRemaining: 0, nextTransition: null };
 	}
 
 	function update(now: Date) {
@@ -325,7 +322,15 @@ export function createPrayerEngine(
 
 		if (!targetPrayer) {
 			const current = getCurrentPrayer(prayerTimes, now);
-			if (current) {
+			// getCurrentPrayer deliberately has a broad display window. Only select it
+			// when its event sequence is actually still active, otherwise a completed
+			// prayer would repeatedly enter FINISHED instead of advancing.
+			if (
+				current &&
+				!['IDLE', 'FINISHED'].includes(
+					computeStateForPrayer(now, current.name, current.time).state
+				)
+			) {
 				targetPrayer = current.name;
 			} else {
 				targetPrayer = getNextPrayer(prayerTimes, now).name;
@@ -343,8 +348,6 @@ export function createPrayerEngine(
 		}
 
 		if (!prev || prev.state !== newState.state || prev.prayer !== newState.prayer) {
-			callbacks?.(newState);
-
 			switch (newState.state) {
 				case 'NOTICE':
 					// do nothing
@@ -362,10 +365,13 @@ export function createPrayerEngine(
 					// do nothing
 					break;
 				case 'FINISHED':
-					// do nothing
 					finishedUntil = nowMs + FINISHED_HOLD;
+					newState.timeRemaining = FINISHED_HOLD;
+					newState.nextTransition = new Date(finishedUntil);
 					break;
 			}
+
+			callbacks?.(newState);
 		}
 	}
 
