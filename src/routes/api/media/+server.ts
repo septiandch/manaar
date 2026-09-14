@@ -2,6 +2,7 @@
 import { json } from '@sveltejs/kit';
 import fs from 'fs/promises';
 import path from 'path';
+import { isSafeMediaFilename, resolveMediaPath } from '$lib/utils/media-path';
 import { _notify } from '../events/+server';
 
 const UPLOAD_DIR = path.resolve('static/uploads');
@@ -34,6 +35,7 @@ async function getAvailableFilename(dir: string, originalName: string): Promise<
 }
 
 export async function GET() {
+	await fs.mkdir(UPLOAD_DIR, { recursive: true });
 	const files = await fs.readdir(UPLOAD_DIR);
 
 	let order: string[] = [];
@@ -41,11 +43,11 @@ export async function GET() {
 	try {
 		order = JSON.parse(await fs.readFile(ORDER_FILE, 'utf-8'));
 	} catch {
-		order = files.filter((f) => f !== 'order.json');
+		order = files.filter(isSafeMediaFilename);
 	}
 
 	const media = order
-		.filter((f) => files.includes(f))
+		.filter((f) => isSafeMediaFilename(f) && files.includes(f))
 		.map((f) => ({
 			name: f,
 			url: `/uploads/${f}`,
@@ -70,7 +72,7 @@ export async function POST({ request }) {
 	let order: string[] = [];
 	try {
 		const data = await fs.readFile(ORDER_FILE, 'utf-8');
-		order = JSON.parse(data);
+		order = (JSON.parse(data) as unknown[]).filter(isSafeMediaFilename);
 	} catch {
 		// order.json does not exist yet
 	}
@@ -121,11 +123,13 @@ export async function POST({ request }) {
 export async function PATCH({ request }) {
 	const order = await request.json();
 
-	if (!Array.isArray(order)) {
+	if (!Array.isArray(order) || !order.every(isSafeMediaFilename)) {
 		return json({ error: 'Invalid order' }, { status: 400 });
 	}
 
+	await fs.mkdir(UPLOAD_DIR, { recursive: true });
 	await fs.writeFile(ORDER_FILE, JSON.stringify(order, null, 2));
+	_notify();
 
 	return json({ success: true });
 }
@@ -137,7 +141,10 @@ export async function DELETE({ request }) {
 		return json({ error: 'Missing filename' }, { status: 400 });
 	}
 
-	const filePath = path.join(UPLOAD_DIR, filename);
+	const filePath = resolveMediaPath(UPLOAD_DIR, filename);
+	if (!filePath) {
+		return json({ error: 'Invalid filename' }, { status: 400 });
+	}
 
 	// Delete file (ignore if already gone)
 	try {
@@ -147,7 +154,9 @@ export async function DELETE({ request }) {
 	// Clean order.json
 	try {
 		const data = await fs.readFile(ORDER_FILE, 'utf-8');
-		const order: string[] = JSON.parse(data).filter((f) => f !== filename);
+		const order: string[] = (JSON.parse(data) as unknown[]).filter(
+			(f): f is string => typeof f === 'string' && f !== filename
+		);
 
 		await fs.writeFile(ORDER_FILE, JSON.stringify(order, null, 2));
 	} catch {}

@@ -26,13 +26,14 @@
 	async function upload() {
 		if (!!ref && !!formData) {
 			uploading = true;
-			onupload(formData);
-
-			uploading = false;
-			formData = null;
-			ref.value = '';
-
-			fileNames = [];
+			try {
+				await onupload(formData);
+				formData = null;
+				ref.value = '';
+				fileNames = [];
+			} finally {
+				uploading = false;
+			}
 		}
 	}
 

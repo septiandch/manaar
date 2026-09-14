@@ -9,6 +9,7 @@
 
 	async function load() {
 		const res = await fetch('/api/media');
+		if (!res.ok) throw new Error(`Unable to load media (${res.status})`);
 		const data = await res.json();
 
 		media = data.map((m: any) => ({
@@ -20,11 +21,12 @@
 	onMount(load);
 
 	async function api(method: 'POST' | 'PATCH' | 'DELETE', body?: BodyInit) {
-		await fetch('/api/media', {
+		const res = await fetch('/api/media', {
 			method,
 			body,
 			headers: method !== 'POST' ? { 'Content-Type': 'application/json' } : undefined
 		});
+		if (!res.ok) throw new Error(`Media request failed (${res.status})`);
 
 		await load();
 	}

@@ -7,6 +7,8 @@ import type { RequestHandler } from './$types';
 const DATA_DIR = path.resolve('data');
 const UPLOAD_DIR = path.resolve('static/uploads');
 const CONFIG_FILE = path.join(DATA_DIR, 'config.json');
+const ALLOWED_LOGO_EXT = /^\.(jpg|jpeg|png|webp|svg)$/i;
+const MAX_LOGO_SIZE = 5 * 1024 * 1024;
 
 async function ensureDirs() {
 	await fs.mkdir(DATA_DIR, { recursive: true });
@@ -55,7 +57,11 @@ export const POST: RequestHandler = async ({ request }) => {
 			}
 
 			const ext = path.extname(value.name);
-			const fileName = `${key}${ext}`; // use field name as file name
+			if (key !== 'logo' || !ALLOWED_LOGO_EXT.test(ext) || value.size > MAX_LOGO_SIZE) {
+				return json({ error: 'Invalid logo file' }, { status: 400 });
+			}
+
+			const fileName = `logo${ext.toLowerCase()}`;
 			const filePath = path.join(UPLOAD_DIR, fileName);
 
 			const buffer = Buffer.from(await value.arrayBuffer());

@@ -50,6 +50,11 @@
 				phase = 'idle';
 			}, 300);
 		}, 300);
+
+		return () => {
+			clearTimeout(topTimeout);
+			clearTimeout(bottomTimeout);
+		};
 	});
 </script>
 

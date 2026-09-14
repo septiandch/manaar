@@ -8,7 +8,7 @@
 		type PrayerState,
 		type PrayerTimeType
 	} from '$lib/utils/prayer-engine';
-	import { onMount, type Snippet } from 'svelte';
+	import type { Snippet } from 'svelte';
 	import type { Readable } from 'svelte/store';
 	import { FlipDisplay } from '../flip-display';
 
@@ -35,7 +35,16 @@
 
 	// Control overlay mode here
 	const FADEOUT_STATE: PrayerState[] = ['JUMUAH', 'PRAYER'];
+	const VISIBLE_STATES: PrayerState[] = [
+		'NOTICE',
+		'COUNTDOWN',
+		'ADHAN',
+		'IQAMAH',
+		'PRAYER',
+		'JUMUAH'
+	];
 	const overlayMode = $derived(FADEOUT_STATE.includes(eState) ? 'fadeout' : 'default');
+	const showOverlay = $derived(VISIBLE_STATES.includes(eState));
 
 	let engine: PrayerEngine;
 
@@ -47,11 +56,12 @@
 		}
 	}
 
-	onMount(() => {
-		engine = createPrayerEngine(prayerTimes, config, onEventChange);
+	$effect(() => {
+		const activeEngine = createPrayerEngine(prayerTimes, config, onEventChange);
+		engine = activeEngine;
 
 		const unsub = clockStore.subscribe((clock) => {
-			engine.update(clock);
+			activeEngine.update(clock);
 		});
 
 		return () => unsub();
@@ -83,7 +93,7 @@
 </script>
 
 {#snippet OverlayContainer(child: Snippet)}
-	{#if eState !== 'IDLE'}
+	{#if showOverlay}
 		<div
 			class="animate-fadein absolute top-0 left-0 flex h-screen w-screen items-center justify-center bg-background"
 		>

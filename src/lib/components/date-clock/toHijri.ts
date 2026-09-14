@@ -42,7 +42,10 @@ export function isRamadhan(date: Date, adjustment: number = 0, maghribTime?: Dat
 }
 
 function calcHijri(date: Date): HijriDate {
-	const jd = Math.floor(date.getTime() / 86400000) + 2440588;
+	// Hijri display follows the local civil date. Using the timestamp directly
+	// makes the day change at UTC midnight (07:00 in western Indonesia).
+	const localMidnightUtc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+	const jd = Math.floor(localMidnightUtc / 86400000) + 2440588;
 
 	const islamicEpoch = 1948439;
 	const daysSinceEpoch = jd - islamicEpoch;

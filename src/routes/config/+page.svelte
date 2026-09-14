@@ -52,6 +52,14 @@
 		{ key: 'latitude', type: 'number', label: 'Latitude', placeholder: 'Latitude' },
 		{ key: 'longitude', type: 'number', label: 'Longitude', placeholder: 'Longitude' },
 		{
+			key: 'beforeNotice',
+			type: 'number',
+			label: 'Imsyak/Syuruq countdown (minute)',
+			placeholder: 'duration (minute)',
+			minValue: 0,
+			withButton: true
+		},
+		{
 			key: 'beforeAdhan',
 			type: 'number',
 			label: 'Adzan countdown (minute)',
@@ -84,6 +92,14 @@
 			withButton: true
 		},
 		{
+			key: 'jumuahDuration',
+			type: 'number',
+			label: 'Jumuah duration (minute)',
+			placeholder: 'duration (minute)',
+			minValue: 5,
+			withButton: true
+		},
+		{
 			key: 'taraweehFromIsya',
 			type: 'number',
 			label: 'Isya to Taraweeh time (minute)',
@@ -102,18 +118,20 @@
 	];
 
 	async function loadConfig() {
-		const res = await fetch('/api/config');
-		if (!res.ok) return;
+		try {
+			const res = await fetch('/api/config');
+			if (!res.ok) throw new Error(`Unable to load config (${res.status})`);
 
-		const data = await res.json();
-		if (!data) return;
+			const data = await res.json();
+			if (!data) return;
 
-		configValues = { ...configValues, ...data };
+			configValues = { ...configValues, ...data };
 
-		logoUrl = data.logo ?? undefined;
-		updatedAt = data.updatedAt;
-
-		loading = false;
+			logoUrl = data.logo ?? undefined;
+			updatedAt = data.updatedAt;
+		} finally {
+			loading = false;
+		}
 	}
 
 	onMount(loadConfig);
@@ -140,13 +158,17 @@
 			}
 		}
 
-		await fetch('/api/config', {
-			method: 'POST',
-			body: formData
-		});
+		try {
+			const res = await fetch('/api/config', {
+				method: 'POST',
+				body: formData
+			});
+			if (!res.ok) throw new Error(`Unable to save config (${res.status})`);
 
-		await loadConfig();
-		loading = false;
+			await loadConfig();
+		} finally {
+			loading = false;
+		}
 	}
 </script>
 

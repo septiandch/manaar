@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
-	import { clock } from '$lib/stores/clock';
+	import { clock, debugClock } from '$lib/stores/clock';
 	import { createPrayerStore } from '$lib/stores/prayertime';
 	import { PrayerSchedule, TimeDisplay } from '@/components/prayer-ui';
 	import PrayerScreen from '@/components/prayer-ui/prayer-screen.svelte';
@@ -12,8 +12,7 @@
 	let { title, subtitle, carouselDuration, longitude, latitude, logo, media, hijriAdj, ...config } =
 		$derived(data);
 
-	let clockStore = clock;
-	// let clockStore = debugClock;
+	let clockStore = false ? clock : debugClock;
 
 	let now = $derived($clockStore);
 
@@ -31,7 +30,7 @@
 </script>
 
 <div
-	class="grid h-screen w-screen grid-cols-10 justify-center gap-4 bg-background p-4 tv:grid-cols-12"
+	class="grid h-screen w-screen grid-cols-10 justify-center gap-4 bg-background p-4 tv:grid-cols-11"
 >
 	<div class="col-span-8 flex h-full min-h-0 flex-col items-stretch gap-2 tv:col-span-9">
 		<div class="flex h-24 w-full items-center justify-between">
@@ -56,7 +55,7 @@
 		</div>
 	</div>
 
-	<div class="col-span-2 h-full rounded-md bg-primary/50 ring-primary/50 tv:col-span-3">
+	<div class="col-span-2 h-full rounded-md bg-primary/50 ring-primary/50 tv:col-span-2">
 		<PrayerSchedule {now} {prayerTimes} />
 	</div>
 </div>
