@@ -28,19 +28,19 @@
 
 <div
 	class={cn(
-		'grid h-max w-full grid-cols-6 gap-4 rounded-md pl-6 tv:my-2 tv:h-full',
+		'flex h-max w-full justify-between gap-2 rounded-md pl-6 tv:my-2 tv:h-full',
 		active && 'bg-white text-primary',
 		incoming && 'bg-black/20'
 	)}
 >
-	<div class="col-span-2 h-12 w-12 self-center justify-self-end tv:col-span-1">
+	<div class="h-12 w-12 self-center justify-self-end tv:col-span-1 tv:h-10 tv:w-10">
 		<Icon class="h-full w-full" />
 	</div>
 
 	<div
-		class="col-span-4 flex flex-1 flex-col self-center p-2 tv:col-span-5 tv:flex-row tv:justify-between tv:gap-4"
+		class="flex w-full flex-1 flex-col items-center justify-center gap-2 self-center p-2 tv:col-span-5 tv:flex-row tv:justify-between"
 	>
-		<span class="text-3xl tv:font-bold">
+		<span class="text-3xl">
 			{label}
 		</span>
 

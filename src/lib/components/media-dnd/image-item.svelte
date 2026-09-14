@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
 	import type { CarouselMediaType } from '@/components/ui/carousel';
-	import { GripVertical } from '@lucide/svelte';
+	import { GripVertical, X, Download } from '@lucide/svelte';
 
 	type Props = {
 		item: CarouselMediaType;
@@ -38,9 +38,17 @@
 
 	<div class="flex flex-col justify-between gap-2">
 		<Button size="sm">
-			<a href={item.url} download={item.name}>Download</a>
+			<Download />
+			<a href={item.url} download={item.name}> Download </a>
 		</Button>
 
-		<Button variant="destructive" size="sm" onclick={() => onremove(item.name)}>Delete</Button>
+		<Button
+			variant="outline"
+			class="border-red-500 text-red-500 hover:bg-red-500/10"
+			size="sm"
+			onclick={() => onremove(item.name)}
+		>
+			<X /> Delete
+		</Button>
 	</div>
 </div>

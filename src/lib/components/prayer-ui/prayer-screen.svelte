@@ -10,7 +10,6 @@
 	} from '$lib/utils/prayer-engine';
 	import type { Snippet } from 'svelte';
 	import type { Readable } from 'svelte/store';
-	import { FlipDisplay } from '../flip-display';
 
 	type PropsType = {
 		clockStore: Readable<Date>;
@@ -109,27 +108,37 @@
 	{/if}
 {/snippet}
 
-{#snippet ShowTimer(title: string, count: number, text?: string, subtext?: string)}
-	<div class="flex h-full w-full flex-col items-center justify-center">
-		<div class="flex h-max w-max flex-col justify-center gap-4 text-center text-5xl font-bold">
-			<span class="text-6xl font-bold uppercase">{title}</span>
-
-			<FlipDisplay
-				countMs={count}
-				class={cn('mt-8 bg-emerald-800/80 shadow-lg')}
-				containerClass="w-36 h-56 text-emerald-700"
-				digitClass="ring-2 ring-primary"
-				nonFlipClass="text-gray-100"
-			/>
-
-			{#if text && subtext}
-				<div
-					class="mt-4 flex h-full w-full flex-col justify-center gap-2 text-center whitespace-pre-wrap text-black/30 tv:gap-4"
-				>
-					<span class="text-4xl font-bold">{text}</span>
-					<span class="text-2xl">{subtext}</span>
-				</div>
-			{/if}
+{#snippet ShowTimer(title: string, count: number)}
+	{@const seconds = Math.ceil(Math.max(0, count) / 1000)}
+	<div class="countdown-overlay">
+		<div class="countdown-hadith">
+			<p class="hadith-text">{contents.IQAMAH.text}</p>
+			<p class="hadith-source">{contents.IQAMAH.src}</p>
+		</div>
+		<div class="tick-wheel" aria-hidden="true">
+			<svg viewBox="0 0 1000 1000" class="rotating-ticks" style:--tick-angle={`${-seconds * 6}deg`}>
+				{#each Array(120) as _, index}
+					<line
+						x1="20"
+						y1="500"
+						x2={index % 5 === 0 ? 50 : 43}
+						y2="500"
+						transform={`rotate(${index * 3} 500 500)`}
+						stroke="currentColor"
+						stroke-width="1.5"
+						stroke-linecap="round"
+					/>
+				{/each}
+			</svg>
+		</div>
+		<div class="countdown-timer" role="timer" aria-label={title}>
+			<span class="sr-only">{title}: </span>
+			<span
+				>{String(Math.floor(seconds / 60)).padStart(2, '0')} : {String(seconds % 60).padStart(
+					2,
+					'0'
+				)}</span
+			>
 		</div>
 	</div>
 {/snippet}
@@ -155,7 +164,7 @@
 	{:else if eState === 'ADHAN'}
 		{@render ShowContent(`Adzan ${ePrayer}`, contents.ADHAN.text, contents.ADHAN.src)}
 	{:else if eState === 'IQAMAH'}
-		{@render ShowTimer(`Iqamah ${ePrayer}`, remainingMs, contents.IQAMAH.text, contents.IQAMAH.src)}
+		{@render ShowTimer(`Iqamah ${ePrayer}`, remainingMs)}
 	{:else if eState === 'PRAYER'}
 		{@render ShowContent('', contents.PRAYER.text, contents.PRAYER.src, 'fadeout')}
 	{:else if eState === 'JUMUAH'}
@@ -164,3 +173,65 @@
 {/snippet}
 
 {@render OverlayContainer(Current)}
+
+<style>
+	.countdown-overlay {
+		position: relative;
+		width: 100%;
+		height: 100%;
+		overflow: hidden;
+		background: var(--background);
+		color: white;
+		display: flex;
+		align-items: center;
+	}
+	.countdown-hadith {
+		position: relative;
+		z-index: 1;
+		width: 57%;
+		margin-left: 6%;
+	}
+	.hadith-text {
+		font-size: clamp(1.15rem, 4.1vw, 5rem);
+		font-weight: 750;
+		line-height: 1.05;
+		text-wrap: pretty;
+	}
+	.hadith-source {
+		margin-top: 0.65em;
+		font-size: clamp(0.85rem, 2.9vw, 3rem);
+		line-height: 1.4;
+	}
+	.tick-wheel {
+		position: absolute;
+		left: 63%;
+		top: 50%;
+		width: 240vh;
+		height: 240vh;
+		transform: translateY(-50%);
+		pointer-events: none;
+		opacity: 0.85;
+	}
+	.rotating-ticks {
+		width: 100%;
+		height: 100%;
+		transform: rotate(var(--tick-angle));
+		transition: transform 120ms ease-out;
+	}
+	.countdown-timer {
+		position: absolute;
+		right: 2%;
+		z-index: 1;
+		font-size: clamp(1.3rem, 6.3vw, 8rem);
+		font-weight: 750;
+		font-variant-numeric: tabular-nums;
+		white-space: nowrap;
+		letter-spacing: 0.025em;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.rotating-ticks {
+			transform: none;
+			transition: none;
+		}
+	}
+</style>

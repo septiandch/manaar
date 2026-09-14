@@ -23,13 +23,13 @@
 	const nextPrayerLabel = $derived(Number(h) > 0 ? `${h} jam ${m} menit` : `${m} menit`);
 </script>
 
-<div class={cn('flex h-full flex-col justify-between rounded-md p-2', className)}>
+<div class={cn('flex h-full flex-col items-center justify-between rounded-md p-2', className)}>
 	<div class="flex flex-col items-center py-2 text-black/50">
 		<span class="text-2xl font-bold">Menuju {nextPrayer.name}</span>
 		<span class="text-3xl tv:font-bold">{nextPrayerLabel}</span>
 	</div>
 
-	<div class="flex h-full flex-col justify-between rounded-md bg-black/10 p-2">
+	<div class="flex h-full w-full flex-col justify-between rounded-md bg-black/10 p-2">
 		{#each timeLabels as label}
 			{#if label !== 'Tarawih'}
 				<PrayerTime

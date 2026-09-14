@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button';
-	import { ImageUp, Loader } from '@lucide/svelte';
+	import { ImageUp, Loader, Upload } from '@lucide/svelte';
 
 	let { onupload }: { onupload: (data: FormData) => Promise<void> } = $props();
 
@@ -67,6 +67,7 @@
 		{#if uploading}
 			<Loader />
 		{:else}
+			<Upload />
 			<span>Upload</span>
 		{/if}
 	</Button>

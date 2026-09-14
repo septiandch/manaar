@@ -12,7 +12,7 @@
 	let { title, subtitle, carouselDuration, longitude, latitude, logo, media, hijriAdj, ...config } =
 		$derived(data);
 
-	let clockStore = false ? clock : debugClock;
+	let clockStore = true ? clock : debugClock;
 
 	let now = $derived($clockStore);
 
