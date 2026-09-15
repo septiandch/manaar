@@ -37,14 +37,14 @@
 	</div>
 
 	<div class="flex flex-col justify-between gap-2">
-		<Button size="sm">
+		<Button size="sm" variant="outline" class="h-8">
 			<Download />
 			<a href={item.url} download={item.name}> Download </a>
 		</Button>
 
 		<Button
 			variant="outline"
-			class="border-red-500 text-red-500 hover:bg-red-500/10"
+			class="h-8 border-red-500 text-red-500 hover:bg-red-500/10 hover:text-red-500"
 			size="sm"
 			onclick={() => onremove(item.name)}
 		>
