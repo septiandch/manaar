@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { invalidateAll } from '$app/navigation';
-	import { clock, debugClock } from '$lib/stores/clock';
+	import { page } from '$app/state';
+	import { clock, createDebugClock, debugClock } from '$lib/stores/clock';
 	import { createPrayerStore } from '$lib/stores/prayertime';
 	import { PrayerSchedule, TimeDisplay } from '@/components/prayer-ui';
 	import PrayerScreen from '@/components/prayer-ui/prayer-screen.svelte';
@@ -12,7 +13,15 @@
 	let { title, subtitle, carouselDuration, longitude, latitude, logo, media, hijriAdj, ...config } =
 		$derived(data);
 
-	let clockStore = false ? clock : debugClock;
+	let clockStore = $derived.by(() => {
+		if (!page.url.searchParams.has('debug')) return clock;
+
+		const datetime = page.url.searchParams.get('datetime');
+		if (!datetime) return debugClock;
+
+		const startTime = new Date(datetime);
+		return Number.isNaN(startTime.getTime()) ? debugClock : createDebugClock(startTime);
+	});
 
 	let now = $derived($clockStore);
 

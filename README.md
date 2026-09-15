@@ -93,7 +93,13 @@ The implementation inherits the preset's adjustments and rounding. It does not f
 
 The test command uses Node's TypeScript stripping support.
 
-For countdown development, `src/lib/stores/clock.ts` provides `createDebugClock(startTime, speed)`. Select `debugClock` instead of `clock` in `src/routes/+page.svelte` to simulate prayer transitions, and restore the real clock before using the display.
+For countdown development, `src/lib/stores/clock.ts` provides `createDebugClock(startTime, speed)`. Open `/?debug` to select `debugClock` and simulate prayer transitions. Open `/` without the `debug` parameter to use the real clock.
+Set a custom debug starting date and time with `/?debug&datetime=2026-09-19T11:45:52`.
+Without a timezone suffix, the value uses the device's local timezone. Use `Z` for
+UTC, or encode an explicit positive offset, for example
+`/?debug&datetime=2026-09-19T11:45:52%2B07:00`. The custom clock advances at normal
+speed. Missing or invalid datetime values fall back to the default `debugClock`;
+`datetime` is ignored unless `debug` is present.
 
 ## Raspberry Pi deployment
 

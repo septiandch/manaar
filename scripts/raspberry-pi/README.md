@@ -59,14 +59,8 @@ Asia/Jakarta. After reboot, reconnect with SSH or open Terminal again. Confirm
 
 On your development computer, before pushing the version to deploy:
 
-1. In `src/routes/+page.svelte`, select the real clock:
-
-   ```ts
-   let clockStore = clock;
-   ```
-
-   At the time this guide was written, the file used `false ? clock : debugClock`,
-   which selects simulated time. Remove the unused `debugClock` import when switching.
+1. Use `/` for the real clock. Adding `?debug` selects the simulated `debugClock`.
+   Keep the kiosk URL free of the debug parameter for deployment.
 2. Run `pnpm check` and `pnpm build`.
 3. Commit and push the desired app changes and `scripts/raspberry-pi/` to GitHub.
 
@@ -215,6 +209,33 @@ sudo systemctl disable --now manaar-update.timer
 sudo systemctl enable --now manaar-update.timer
 ```
 
+## Debug clock and custom datetime
+
+Use these URLs to test prayer transitions:
+
+| URL | Clock behavior |
+| --- | --- |
+| `http://localhost:5000/` | Real clock (normal display operation). |
+| `http://localhost:5000/?debug` | Default debug clock configured in `src/lib/stores/clock.ts`. |
+| `http://localhost:5000/?debug&datetime=2026-09-19T11:45:52` | Debug clock starting at the specified local date and time. |
+
+The custom datetime clock advances at normal speed. Use ISO datetime format
+`YYYY-MM-DDTHH:mm:ss`. Without a timezone suffix, it uses the browser device's
+local timezone. For an explicit UTC+7 offset, encode the plus sign as `%2B`:
+
+```text
+http://localhost:5000/?debug&datetime=2026-09-19T11:45:52%2B07:00
+```
+
+Use a trailing `Z` for UTC, for example `2026-09-19T04:45:52Z`.
+Missing or invalid datetime values fall back to the default debug clock.
+The `datetime` parameter is ignored unless `debug` is present. Any presence of
+`debug`, including `debug=false`, enables debug mode; remove it to return to real time.
+
+These URLs also work through the SSH tunnel described above. Opening one on your
+laptop affects that browser's clock, not the Pi's kiosk window. Keep the kiosk
+startup URL at `http://localhost:5000/` for normal operation.
+
 ## 10. Back up and maintain the installation
 
 Persistent paths:
@@ -294,7 +315,7 @@ also enforces the resolution while running. This leaves the app server installed
 | Browser shows an error | `curl --fail http://localhost:5000/` and `journalctl -u manaar.service -n 100 --no-pager` |
 | Server works but kiosk does not launch | `systemctl status lightdm` and `journalctl -u lightdm -b --no-pager`; confirm the desktop user used for setup. |
 | Uploaded media is missing | Check shared upload files, their read permissions, and `sudo nginx -t`. |
-| Prayer clock runs at simulated speed | Select `clock` rather than `debugClock`, push the fix, and run a manual update. |
+| Prayer clock runs at simulated speed | Remove the `debug` query parameter from the display URL. |
 | Display is blank after reboot | Use SSH and the desktop/display recovery procedure above. |
 
 ## Validation limits

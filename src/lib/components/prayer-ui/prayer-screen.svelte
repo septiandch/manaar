@@ -113,7 +113,7 @@
 
 {#snippet ShowTimer(title: string, count: number, content: TimerContent)}
 	{@const seconds = Math.ceil(Math.max(0, count) / 1000)}
-	<div class="relative flex h-full w-full items-center overflow-hidden bg-black text-gray-400">
+	<div class="relative flex h-full w-full items-center overflow-hidden bg-black text-gray-300">
 		<div class="relative z-[1] ml-[6%] w-[57%]">
 			<p class="text-[clamp(1.15rem,4.1vw,5rem)] leading-[1.3] font-[750] text-pretty">
 				{content.text}
