@@ -1,4 +1,4 @@
-﻿# Sonora
+# Sonora
 
 A mosque prayer display built with Svelte 5, SvelteKit, TypeScript, and Tailwind CSS. Designed for a landscape screen or TV, it combines a daily prayer schedule, a clock and Hijri date, announcement media, and prayer countdown overlays.
 
@@ -94,6 +94,10 @@ The implementation inherits the preset's adjustments and rounding. It does not f
 The test command uses Node's TypeScript stripping support.
 
 For countdown development, `src/lib/stores/clock.ts` provides `createDebugClock(startTime, speed)`. Select `debugClock` instead of `clock` in `src/routes/+page.svelte` to simulate prayer transitions, and restore the real clock before using the display.
+
+## Raspberry Pi deployment
+
+See [Raspberry Pi setup](scripts/raspberry-pi/README.md) for kiosk autostart, forced 1080p, and daily Git updates with build checks and rollback.
 
 ## Production
 
