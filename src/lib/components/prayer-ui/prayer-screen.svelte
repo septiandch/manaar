@@ -18,6 +18,9 @@
 	};
 
 	type OverlayMode = 'default' | 'fadeout';
+	type TimerContent =
+		| { variant: 'notification'; text: string }
+		| { variant: 'hadith'; text: string; src: string };
 
 	let { config, clockStore, prayerTimes }: PropsType = $props();
 
@@ -74,7 +77,7 @@
 	const contents = {
 		ADHAN: {
 			text: 'Ucapkanlah sebagaimana yang disebutkan\noleh muadzin. Lalu jika azan selesai berdoalah,\nmaka Allah akan kabulkan.',
-			src: 'HR. Abu Daud no. 524 dan Ahmad 2: 172'
+			src: 'HR. Abu Daud no.524 dan Ahmad 2:172'
 		},
 		JUMUAH: {
 			text: 'Apabila dibacakan Al-Quran (khutbah),\nmaka dengarkanlah baik-baik,\ndan perhatikanlah dengan tenang\nagar kamu mendapat rahmat.\n',
@@ -82,11 +85,11 @@
 		},
 		IQAMAH: {
 			text: "Sesungguhnya do'a yang tidak tertolak\nadalah do'a antara adzan dan iqomah,\nmaka berdo'alah.",
-			src: 'HR. Ahmad 3/155'
+			src: 'HR. Ahmad 3:155'
 		},
 		PRAYER: {
 			text: 'Luruskanlah shaf-shaf kalian,\nkarena lurusnya shaf termasuk\nbagian dari kesempurnaan shalat.',
-			src: 'HR. Bukhari, no. 723 dan Muslim, no. 433'
+			src: 'HR. Bukhari, no.723 dan Muslim, no.433'
 		}
 	};
 </script>
@@ -94,7 +97,7 @@
 {#snippet OverlayContainer(child: Snippet)}
 	{#if showOverlay}
 		<div
-			class="animate-fadein absolute top-0 left-0 flex h-screen w-screen items-center justify-center bg-background"
+			class="animate-fadein absolute top-0 left-0 flex h-screen w-screen items-center justify-center bg-black"
 		>
 			<div
 				class={cn(
@@ -108,15 +111,26 @@
 	{/if}
 {/snippet}
 
-{#snippet ShowTimer(title: string, count: number)}
+{#snippet ShowTimer(title: string, count: number, content: TimerContent)}
 	{@const seconds = Math.ceil(Math.max(0, count) / 1000)}
-	<div class="countdown-overlay">
-		<div class="countdown-hadith">
-			<p class="hadith-text">{contents.IQAMAH.text}</p>
-			<p class="hadith-source">{contents.IQAMAH.src}</p>
+	<div class="relative flex h-full w-full items-center overflow-hidden bg-black text-gray-400">
+		<div class="relative z-[1] ml-[6%] w-[57%]">
+			<p class="text-[clamp(1.15rem,4.1vw,5rem)] leading-[1.3] font-[750] text-pretty">
+				{content.text}
+			</p>
+			{#if content.variant === 'hadith'}
+				<p class="mt-[0.65em] text-[clamp(0.85rem,2.9vw,3rem)] leading-[1.4]">{content.src}</p>
+			{/if}
 		</div>
-		<div class="tick-wheel" aria-hidden="true">
-			<svg viewBox="0 0 1000 1000" class="rotating-ticks" style:--tick-angle={`${-seconds * 6}deg`}>
+		<div
+			class="pointer-events-none absolute top-1/2 left-[63%] h-[240vh] w-[240vh] -translate-y-1/2 opacity-85"
+			aria-hidden="true"
+		>
+			<svg
+				viewBox="0 0 1000 1000"
+				class="h-full w-full [transform:rotate(var(--tick-angle))] transition-transform duration-[120ms] ease-out motion-reduce:transform-none motion-reduce:transition-none"
+				style:--tick-angle={`${-seconds * 6}deg`}
+			>
 				{#each Array(120) as _, index}
 					<line
 						x1="20"
@@ -131,7 +145,11 @@
 				{/each}
 			</svg>
 		</div>
-		<div class="countdown-timer" role="timer" aria-label={title}>
+		<div
+			class="absolute right-[4%] z-1 text-[clamp(1.05rem,6.3vw,8rem)] font-[750] tracking-[0.025em] whitespace-nowrap tabular-nums"
+			role="timer"
+			aria-label={title}
+		>
 			<span class="sr-only">{title}: </span>
 			<span
 				>{String(Math.floor(seconds / 60)).padStart(2, '0')} : {String(seconds % 60).padStart(
@@ -151,7 +169,7 @@
 		)}
 	>
 		<span class="mb-6 text-7xl uppercase">{title}</span>
-		<span class="mb-4 text-5xl">{text}</span>
+		<span class="mb-4 text-6xl leading-[1.3]">{text}</span>
 		<span class="text-2xl">{subtext}</span>
 	</div>
 {/snippet}
@@ -160,11 +178,17 @@
 	{#if eState === 'NOTICE'}
 		{@render ShowContent(`Memasuki waktu ${ePrayer}`, '', '')}
 	{:else if eState === 'COUNTDOWN'}
-		{@render ShowTimer(`Menuju waktu ${ePrayer}`, remainingMs)}
+		{@render ShowTimer(`Menuju waktu ${ePrayer}`, remainingMs, {
+			variant: 'notification',
+			text: `Menuju waktu ${ePrayer}`
+		})}
 	{:else if eState === 'ADHAN'}
 		{@render ShowContent(`Adzan ${ePrayer}`, contents.ADHAN.text, contents.ADHAN.src)}
 	{:else if eState === 'IQAMAH'}
-		{@render ShowTimer(`Iqamah ${ePrayer}`, remainingMs)}
+		{@render ShowTimer(`Iqamah ${ePrayer}`, remainingMs, {
+			variant: 'hadith',
+			...contents.IQAMAH
+		})}
 	{:else if eState === 'PRAYER'}
 		{@render ShowContent('', contents.PRAYER.text, contents.PRAYER.src, 'fadeout')}
 	{:else if eState === 'JUMUAH'}
@@ -173,65 +197,3 @@
 {/snippet}
 
 {@render OverlayContainer(Current)}
-
-<style>
-	.countdown-overlay {
-		position: relative;
-		width: 100%;
-		height: 100%;
-		overflow: hidden;
-		background: var(--background);
-		color: white;
-		display: flex;
-		align-items: center;
-	}
-	.countdown-hadith {
-		position: relative;
-		z-index: 1;
-		width: 57%;
-		margin-left: 6%;
-	}
-	.hadith-text {
-		font-size: clamp(1.15rem, 4.1vw, 5rem);
-		font-weight: 750;
-		line-height: 1.05;
-		text-wrap: pretty;
-	}
-	.hadith-source {
-		margin-top: 0.65em;
-		font-size: clamp(0.85rem, 2.9vw, 3rem);
-		line-height: 1.4;
-	}
-	.tick-wheel {
-		position: absolute;
-		left: 63%;
-		top: 50%;
-		width: 240vh;
-		height: 240vh;
-		transform: translateY(-50%);
-		pointer-events: none;
-		opacity: 0.85;
-	}
-	.rotating-ticks {
-		width: 100%;
-		height: 100%;
-		transform: rotate(var(--tick-angle));
-		transition: transform 120ms ease-out;
-	}
-	.countdown-timer {
-		position: absolute;
-		right: 2%;
-		z-index: 1;
-		font-size: clamp(1.3rem, 6.3vw, 8rem);
-		font-weight: 750;
-		font-variant-numeric: tabular-nums;
-		white-space: nowrap;
-		letter-spacing: 0.025em;
-	}
-	@media (prefers-reduced-motion: reduce) {
-		.rotating-ticks {
-			transform: none;
-			transition: none;
-		}
-	}
-</style>

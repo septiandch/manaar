@@ -27,8 +27,6 @@
 	onDestroy(() => {
 		clearTimeout(timer);
 	});
-
-	$inspect(now);
 </script>
 
 <div class="relative mt-2 h-full w-100 overflow-hidden text-white">

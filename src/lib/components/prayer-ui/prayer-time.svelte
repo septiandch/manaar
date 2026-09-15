@@ -38,9 +38,9 @@
 	</div>
 
 	<div
-		class="flex w-full flex-1 flex-col items-center justify-center gap-2 self-center p-2 tv:col-span-5 tv:flex-row tv:justify-between"
+		class="flex w-full flex-1 flex-col items-center justify-center gap-2 self-center p-2 tv:flex-row tv:justify-between tv:gap-4"
 	>
-		<span class="text-3xl">
+		<span class="text-3xl font-bold">
 			{label}
 		</span>
 

@@ -35,6 +35,6 @@ export function createDebugClock(startTime: Date, speed = 1) {
 
 export const debugClock = createDebugClock(
 	//new Date(),
-	new Date('2026-09-19T11:46:52'),
+	new Date('2026-09-19T11:45:52'),
 	1 // 1 real second = 1 simulated minute
 );

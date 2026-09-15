@@ -12,7 +12,7 @@
 	let { title, subtitle, carouselDuration, longitude, latitude, logo, media, hijriAdj, ...config } =
 		$derived(data);
 
-	let clockStore = true ? clock : debugClock;
+	let clockStore = false ? clock : debugClock;
 
 	let now = $derived($clockStore);
 
@@ -29,10 +29,8 @@
 	});
 </script>
 
-<div
-	class="grid h-screen w-screen grid-cols-10 justify-center gap-4 bg-background p-4 tv:grid-cols-11"
->
-	<div class="col-span-8 flex h-full min-h-0 flex-col items-stretch gap-2 tv:col-span-9">
+<div class="flex h-screen w-screen justify-center gap-4 bg-background p-4">
+	<div class="flex h-full min-h-0 w-full flex-col items-stretch gap-2">
 		<div class="flex h-24 w-full items-center justify-between">
 			<div class="flex items-center gap-4">
 				<div class="h-16 w-16">
@@ -55,7 +53,7 @@
 		</div>
 	</div>
 
-	<div class="col-span-2 h-full rounded-md bg-primary/50 ring-primary/50 tv:col-span-2">
+	<div class="h-full w-94 rounded-md bg-primary/50 ring-primary/50 tv:w-80">
 		<PrayerSchedule {now} {prayerTimes} />
 	</div>
 </div>
