@@ -18,7 +18,7 @@ On your laptop/PC:
 1. Install [Raspberry Pi Imager](https://www.raspberrypi.com/software/).
 2. Select your Pi model and **Raspberry Pi OS (64-bit) with Desktop**. Do not select Lite.
 3. Select the target SD card/SSD. Writing the image erases that selected device.
-4. In OS customisation, set hostname `manaar-pi`, a username and password, Wi-Fi
+4. In OS customisation, set hostname `manar-pi`, a username and password, Wi-Fi
    if needed, and your locale/timezone. Enable SSH and configure authentication.
 5. Write the image, safely eject the storage, insert it into the Pi, and power on.
 
@@ -30,7 +30,7 @@ for the Imager screens. The examples below use username `piuser`; replace it wit
 Open Terminal on the Pi, or run this from your laptop/PC:
 
 ```sh
-ssh piuser@manaar-pi.local
+ssh piuser@manar-pi.local
 ```
 
 If the hostname does not resolve, use the Pi's IP address from your router or
@@ -73,23 +73,23 @@ On the Pi, from your normal user account:
 
 ```sh
 cd ~
-git clone https://github.com/septiandch/manaar.git
-cd ~/manaar
+git clone https://github.com/septiandch/manar.git
+cd ~/manar
 sudo bash scripts/raspberry-pi/setup.sh
 ```
 
-If `~/manaar` already exists, use that checkout and update it with
+If `~/manar` already exists, use that checkout and update it with
 `git pull --ff-only` instead of cloning again. Run the setup through `sudo` from
 the user who should log into the kiosk; do not use a root login or `sudo su`.
 
 The script installs Node 22, pnpm 10, Chromium, labwc, nginx and build tools. It
-creates the separate `manaar` service account, builds the initial release, installs
+creates the separate `manar` service account, builds the initial release, installs
 systemd services, and configures kiosk login and HDMI output. Leave it running
 until it reports `Setup complete`. Internet access is required.
 
 For a private repository, the deployment service account also needs read access;
 credentials used by your normal user are not automatically shared. Configure a
-read-only Git credential for `manaar` before the initial clone performed by the
+read-only Git credential for `manar` before the initial clone performed by the
 updater. If setup fails at authentication, configure that account and rerun setup.
 Updates cannot answer interactive authentication prompts.
 
@@ -98,10 +98,10 @@ Updates cannot answer interactive authentication prompts.
 On the Pi:
 
 ```sh
-systemctl is-active manaar.service nginx.service manaar-update.timer
+systemctl is-active manar.service nginx.service manar-update.timer
 curl --fail http://localhost:5000/ -o /dev/null
-systemctl list-timers manaar-update.timer
-cat /opt/manaar/current/.release-commit
+systemctl list-timers manar-update.timer
+cat /opt/manar/current/.release-commit
 ```
 
 Expect three `active` lines, a successful curl exit, a scheduled update, and the
@@ -121,7 +121,7 @@ You can also configure the app from your laptop, including after kiosk startup.
 Run this **on your laptop/PC**, replacing the username and host as needed:
 
 ```sh
-ssh -N -L 5000:127.0.0.1:5000 piuser@manaar-pi.local
+ssh -N -L 5000:127.0.0.1:5000 piuser@manar-pi.local
 ```
 
 Keep that terminal open and visit `http://localhost:5000/config` or `/upload` in
@@ -129,10 +129,10 @@ your laptop browser. Stop any local development server using port 5000 first.
 The tunnel uses the same origin expected by the app and requires no server changes.
 The Pi's app listeners are loopback-only, so `http://PI-IP:5000` is not accessible directly.
 
-Configuration and media are stored under `/opt/manaar/shared/`. Existing checkout
+Configuration and media are stored under `/opt/manar/shared/`. Existing checkout
 files are not imported automatically. If migrating an existing installation, stop
 the app and copy its `data/` and `static/uploads/` contents into the matching shared
-locations, then set ownership to `manaar:manaar` before restarting.
+locations, then set ownership to `manar:manar` before restarting.
 
 ## 8. Reboot into the display
 
@@ -158,9 +158,9 @@ Updates run at **03:00 local time**, with up to 15 minutes of random delay. A mi
 run is caught up after boot. Trigger a check manually on the Pi:
 
 ```sh
-sudo systemctl start manaar-update.service
-journalctl -u manaar-update.service -n 100 --no-pager
-systemctl list-timers manaar-update.timer
+sudo systemctl start manar-update.service
+journalctl -u manar-update.service -n 100 --no-pager
+systemctl list-timers manar-update.timer
 ```
 
 An unchanged commit reports `Already running`. For a changed commit, the updater:
@@ -175,7 +175,7 @@ An unchanged commit reports `Already running`. For a changed commit, the updater
 Failed installs/builds leave the running server untouched. Activation has a brief
 interruption. Rollback restores code, not changes to persistent data.
 
-To follow another branch, edit `BRANCH=` in `/etc/manaar.conf`, for example
+To follow another branch, edit `BRANCH=` in `/etc/manar.conf`, for example
 `BRANCH=main`, then trigger a manual update. Leave it empty for the initially
 recorded default branch. Daily Git updates do not install OS updates or replace
 the installed deployment scripts.
@@ -183,7 +183,7 @@ the installed deployment scripts.
 To change the update time:
 
 ```sh
-sudo systemctl edit manaar-update.timer
+sudo systemctl edit manar-update.timer
 ```
 
 Add this override (example: 02:00):
@@ -198,15 +198,15 @@ Then run:
 
 ```sh
 sudo systemctl daemon-reload
-sudo systemctl restart manaar-update.timer
-systemctl list-timers manaar-update.timer
+sudo systemctl restart manar-update.timer
+systemctl list-timers manar-update.timer
 ```
 
 Disable or re-enable daily checks:
 
 ```sh
-sudo systemctl disable --now manaar-update.timer
-sudo systemctl enable --now manaar-update.timer
+sudo systemctl disable --now manar-update.timer
+sudo systemctl enable --now manar-update.timer
 ```
 
 ## Debug clock and custom datetime
@@ -242,46 +242,46 @@ Persistent paths:
 
 | Path | Contents |
 | --- | --- |
-| `/opt/manaar/shared/data` | Mosque configuration |
-| `/opt/manaar/shared/static/uploads` | Logos, media and ordering |
-| `/opt/manaar/releases` | Built releases, including failed candidates |
-| `/opt/manaar/current` | Symlink to the active release |
-| `/etc/manaar.conf` | Git repository/branch configuration |
+| `/opt/manar/shared/data` | Mosque configuration |
+| `/opt/manar/shared/static/uploads` | Logos, media and ordering |
+| `/opt/manar/releases` | Built releases, including failed candidates |
+| `/opt/manar/current` | Symlink to the active release |
+| `/etc/manar.conf` | Git repository/branch configuration |
 
 For a consistent backup, wait for any update to finish, avoid configuration writes,
 and run on the Pi (the app is briefly stopped):
 
 ```sh
-sudo systemctl stop manaar-update.timer
-sudo systemctl stop manaar.service
-sudo tar -czf "$HOME/manaar-data-$(date +%Y%m%d-%H%M%S).tar.gz" -C /opt/manaar/shared data static/uploads
-sudo systemctl start manaar.service
-sudo systemctl start manaar-update.timer
+sudo systemctl stop manar-update.timer
+sudo systemctl stop manar.service
+sudo tar -czf "$HOME/manar-data-$(date +%Y%m%d-%H%M%S).tar.gz" -C /opt/manar/shared data static/uploads
+sudo systemctl start manar.service
+sudo systemctl start manar-update.timer
 ```
 
 Copy the archive off the Pi. If you previously disabled automatic updates, leave
 the timer stopped instead of starting it again.
 
-Monitor storage with `df -h /opt/manaar` and `sudo du -sh /opt/manaar/releases/*`.
+Monitor storage with `df -h /opt/manar` and `sudo du -sh /opt/manar/releases/*`.
 Old releases are retained; remove unused ones manually after identifying the active
-release with `readlink -f /opt/manaar/current`. Keep the previous working release too.
+release with `readlink -f /opt/manar/current`. Keep the previous working release too.
 
 To install future changes to the setup scripts:
 
 ```sh
-cd ~/manaar
+cd ~/manar
 git pull --ff-only
 sudo bash scripts/raspberry-pi/setup.sh
 sudo reboot
 ```
 
 Rerunning setup rewrites its generated service and nginx files; retain copies of
-any manual customisations. `/etc/manaar.conf` and shared app data are preserved.
+any manual customisations. `/etc/manar.conf` and shared app data are preserved.
 
 ## Forced 1080p: behavior and recovery
 
 Setup adds `video=HDMI-A-1:1920x1080M@60D` and the equivalent for HDMI-A-2 to the
-kernel command line, backing up the original as `.manaar-backup`. The kiosk
+kernel command line, backing up the original as `.manar-backup`. The kiosk
 reapplies a custom 1920x1080 at 60 Hz mode, scale 1, every ten seconds, including
 on hotplug. Its dedicated session does not launch desktop display-profile managers
 or idle blanking programs. See the official
@@ -294,8 +294,8 @@ To restore ordinary desktop boot and the original display settings, connect by S
 or use a text console (Ctrl+Alt+F2), then run:
 
 ```sh
-sudo rm /etc/lightdm/lightdm.conf.d/99-manaar.conf
-sudo cp /boot/firmware/cmdline.txt.manaar-backup /boot/firmware/cmdline.txt
+sudo rm /etc/lightdm/lightdm.conf.d/99-manar.conf
+sudo cp /boot/firmware/cmdline.txt.manar-backup /boot/firmware/cmdline.txt
 sudo reboot
 ```
 
@@ -311,8 +311,8 @@ also enforces the resolution while running. This leaves the app server installed
 | Installer rejects architecture | `uname -m` must be `aarch64`; install the 64-bit desktop OS. |
 | Installer requires LightDM | Use Raspberry Pi OS Desktop with LightDM; Lite is unsupported. |
 | Initial build fails | Read setup terminal output, check internet and `df -h`, then rerun setup. |
-| Scheduled update fails | `journalctl -u manaar-update.service -n 100 --no-pager` |
-| Browser shows an error | `curl --fail http://localhost:5000/` and `journalctl -u manaar.service -n 100 --no-pager` |
+| Scheduled update fails | `journalctl -u manar-update.service -n 100 --no-pager` |
+| Browser shows an error | `curl --fail http://localhost:5000/` and `journalctl -u manar.service -n 100 --no-pager` |
 | Server works but kiosk does not launch | `systemctl status lightdm` and `journalctl -u lightdm -b --no-pager`; confirm the desktop user used for setup. |
 | Uploaded media is missing | Check shared upload files, their read permissions, and `sudo nginx -t`. |
 | Prayer clock runs at simulated speed | Remove the `debug` query parameter from the display URL. |
@@ -322,3 +322,68 @@ also enforces the resolution while running. This leaves the app server installed
 
 The shell scripts have been syntax-checked. Actual boot, HDMI mode acceptance,
 browser startup, and systemd activation still require verification on the Pi.
+
+## Migrate an existing Manaar installation
+
+Fresh installations can skip this section. Renaming the GitHub repository alone
+will not rename services or move data on an already configured Pi. Perform this
+migration over SSH; it stops the display until setup and reboot are complete.
+Rename the repository on GitHub and push the renamed scripts before starting.
+
+1. In your existing checkout (its folder can keep the old name), update the remote
+   and download the renamed scripts:
+
+   ```sh
+   git remote set-url origin https://github.com/septiandch/manar.git
+   git pull --ff-only
+   ```
+
+2. Stop the old timer and wait for any running update to finish. Check with
+   `systemctl is-active manaar-update.service`; continue only when it is inactive
+   or failed. Then stop the old application and kiosk:
+
+   ```sh
+   sudo systemctl disable --now manaar-update.timer
+   sudo systemctl disable --now manaar.service
+   sudo systemctl stop lightdm
+   ```
+
+3. Back up the shared data, then copy it to the new location. These instructions
+   assume `/opt/manar/shared` does not already contain another installation.
+   If it does, back up both installations and reconcile their data first.
+
+   ```sh
+   sudo tar -czf "$HOME/manaar-before-rename.tar.gz" -C /opt/manaar/shared data static/uploads
+   sudo mkdir -p /opt/manar/shared
+   sudo cp -a /opt/manaar/shared/. /opt/manar/shared/
+   sudo mv /etc/nginx/conf.d/manaar.conf /etc/nginx/conf.d/manaar.conf.disabled
+   sudo mv /etc/lightdm/lightdm.conf.d/99-manaar.conf /etc/lightdm/lightdm.conf.d/99-manaar.conf.disabled
+   ```
+
+4. Preserve the original display recovery backup and Git branch configuration:
+
+   ```sh
+   sudo cp -n /boot/firmware/cmdline.txt.manaar-backup /boot/firmware/cmdline.txt.manar-backup
+   sudo cp /etc/manaar.conf /etc/manar.conf
+   sudo nano /etc/manar.conf
+   ```
+
+   Use `/boot/cmdline.txt` and its matching backup names on older layouts. In
+   `/etc/manar.conf`, set `REPOSITORY=https://github.com/septiandch/manar.git` and
+   retain your desired `BRANCH`. Private repository credentials must also be
+   configured for the new `manar` account before its first Git clone.
+
+5. Create the new service account and give it ownership of the copied data:
+
+   ```sh
+   sudo useradd --system --create-home --home-dir /opt/manar --shell /usr/sbin/nologin manar
+   sudo chown -R manar:manar /opt/manar/shared
+   sudo bash scripts/raspberry-pi/setup.sh
+   ```
+
+   Skip `useradd` if `id manar` already succeeds. Run setup from your normal
+   desktop user through `sudo`. After `Setup complete`, verify the services and
+   settings using steps 6 and 7 above, then reboot. Keep the old `/opt/manaar`
+   directory and backup until you have verified the new installation. The Pi's
+   hostname and your checkout folder do not change automatically; keep using
+   your existing hostname for SSH unless you explicitly rename it.

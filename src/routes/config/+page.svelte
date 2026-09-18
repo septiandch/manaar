@@ -236,7 +236,7 @@
 	}
 </script>
 
-<svelte:head><title>Display settings | Manaar</title></svelte:head>
+<svelte:head><title>Display settings | Manar</title></svelte:head>
 
 <div class="m-auto my-2 w-4xl max-w-[95vw] space-y-4 md:my-4 md:max-w-[90vw]">
 	<header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

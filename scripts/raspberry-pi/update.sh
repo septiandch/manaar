@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
-source /etc/manaar.conf
-exec 9>/opt/manaar/update.lock
+source /etc/manar.conf
+exec 9>/opt/manar/update.lock
 flock -n 9 || exit 0
 export PATH=/usr/local/bin:/usr/bin:/bin
 export GIT_TERMINAL_PROMPT=0
-root=/opt/manaar
-run() { runuser -u manaar -- "$@"; }
+root=/opt/manar
+run() { runuser -u manar -- "$@"; }
 if [[ ! -d $root/repo.git ]]; then
   run git clone --bare "$REPOSITORY" "$root/repo.git"
 fi
@@ -33,9 +33,9 @@ cleanup() {
     if [[ -n $old ]]; then
       ln -sfn "$old" "$root/current.next"
       mv -Tf "$root/current.next" "$root/current"
-      systemctl restart manaar.service || true
+      systemctl restart manar.service || true
     else
-      systemctl stop manaar.service || true
+      systemctl stop manar.service || true
       rm -f "$root/current"
     fi
   fi
@@ -75,9 +75,9 @@ done
 ln -sfn "$release" "$root/current.next"
 activated=1
 mv -Tf "$root/current.next" "$root/current"
-systemctl restart manaar.service
+systemctl restart manar.service
 healthy 3000
-systemctl is-active --quiet manaar.service
+systemctl is-active --quiet manar.service
 # The kiosk watches this marker and reloads only after a successful activation.
 printf '%s\n' "$commit" > "$root/shared/version"
 echo "Activated $commit"

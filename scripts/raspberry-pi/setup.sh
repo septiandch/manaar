@@ -7,6 +7,11 @@ kiosk_user=${SUDO_USER:-}
 [[ $(uname -m) == aarch64 ]] || { echo 'Requires 64-bit Raspberry Pi OS.' >&2; exit 1; }
 command -v raspi-config >/dev/null
 [[ -d /etc/lightdm ]] || { echo 'Requires Raspberry Pi OS Desktop (LightDM).' >&2; exit 1; }
+# Avoid running old and renamed installations against the same ports.
+if [[ -f /etc/nginx/conf.d/manaar.conf || -f /etc/lightdm/lightdm.conf.d/99-manaar.conf ]]; then
+  echo 'Existing Manaar installation: follow the migration section in scripts/raspberry-pi/README.md before setup.' >&2
+  exit 1
+fi
 apt-get update
 apt-get install -y git curl ca-certificates xz-utils build-essential python3 nginx chromium labwc wlr-randr
 # Install the latest Node 22 binary from nodejs.org, verified against its checksum.
@@ -20,47 +25,47 @@ curl -fsS "https://nodejs.org/dist/latest-v22.x/$archive" -o "$temp/$archive"
 tar -xJf "$temp/$archive" -C /usr/local --strip-components=1
 export PATH=/usr/local/bin:/usr/bin:/bin
 npm install --global pnpm@10
-id manaar >/dev/null 2>&1 || useradd --system --create-home --home-dir /opt/manaar --shell /usr/sbin/nologin manaar
-install -d -o manaar -g manaar /opt/manaar/releases /opt/manaar/shared/data /opt/manaar/shared/static/uploads
-chown manaar:manaar /opt/manaar
-chmod 755 /opt/manaar /opt/manaar/shared /opt/manaar/shared/static /opt/manaar/shared/static/uploads
-install -m 755 "$source_dir/update.sh" /usr/local/bin/manaar-update
-install -m 755 "$source_dir/kiosk.sh" /usr/local/bin/manaar-kiosk
-if [[ ! -f /etc/manaar.conf ]]; then
-  cat > /etc/manaar.conf <<'EOF'
-REPOSITORY=https://github.com/septiandch/manaar.git
+id manar >/dev/null 2>&1 || useradd --system --create-home --home-dir /opt/manar --shell /usr/sbin/nologin manar
+install -d -o manar -g manar /opt/manar/releases /opt/manar/shared/data /opt/manar/shared/static/uploads
+chown manar:manar /opt/manar
+chmod 755 /opt/manar /opt/manar/shared /opt/manar/shared/static /opt/manar/shared/static/uploads
+install -m 755 "$source_dir/update.sh" /usr/local/bin/manar-update
+install -m 755 "$source_dir/kiosk.sh" /usr/local/bin/manar-kiosk
+if [[ ! -f /etc/manar.conf ]]; then
+  cat > /etc/manar.conf <<'EOF'
+REPOSITORY=https://github.com/septiandch/manar.git
 # Empty means the default branch recorded when the repository is first cloned.
 BRANCH=
 EOF
 fi
-cat > /etc/systemd/system/manaar.service <<'EOF'
+cat > /etc/systemd/system/manar.service <<'EOF'
 [Unit]
-Description=Manaar application
+Description=Manar application
 After=network.target
 [Service]
-User=manaar
-Group=manaar
-WorkingDirectory=/opt/manaar/current
+User=manar
+Group=manar
+WorkingDirectory=/opt/manar/current
 Environment=NODE_ENV=production HOST=127.0.0.1 PORT=3000 ORIGIN=http://localhost:5000 BODY_SIZE_LIMIT=100M
-ExecStart=/usr/local/bin/node /opt/manaar/current/build/index.js
+ExecStart=/usr/local/bin/node /opt/manar/current/build/index.js
 Restart=on-failure
 RestartSec=5
 [Install]
 WantedBy=multi-user.target
 EOF
-cat > /etc/systemd/system/manaar-update.service <<'EOF'
+cat > /etc/systemd/system/manar-update.service <<'EOF'
 [Unit]
-Description=Build and deploy Manaar updates
+Description=Build and deploy Manar updates
 Wants=network-online.target
 After=network-online.target
 [Service]
 Type=oneshot
-ExecStart=/usr/local/bin/manaar-update
+ExecStart=/usr/local/bin/manar-update
 TimeoutStartSec=2h
 EOF
-cat > /etc/systemd/system/manaar-update.timer <<'EOF'
+cat > /etc/systemd/system/manar-update.timer <<'EOF'
 [Unit]
-Description=Check Manaar Git repository daily
+Description=Check Manar Git repository daily
 [Timer]
 OnCalendar=*-*-* 03:00:00
 RandomizedDelaySec=15m
@@ -68,13 +73,13 @@ Persistent=true
 [Install]
 WantedBy=timers.target
 EOF
-cat > /etc/nginx/conf.d/manaar.conf <<'EOF'
+cat > /etc/nginx/conf.d/manar.conf <<'EOF'
 server {
     listen 127.0.0.1:5000;
     server_name localhost;
     client_max_body_size 100m;
     location /uploads/ {
-        alias /opt/manaar/shared/static/uploads/;
+        alias /opt/manar/shared/static/uploads/;
         add_header Cache-Control "no-cache";
     }
     location / {
@@ -88,30 +93,30 @@ server {
 EOF
 nginx -t
 systemctl daemon-reload
-/usr/local/bin/manaar-update
-systemctl enable manaar.service nginx.service manaar-update.timer
+/usr/local/bin/manar-update
+systemctl enable manar.service nginx.service manar-update.timer
 systemctl restart nginx.service
-systemctl start manaar-update.timer
+systemctl start manar-update.timer
 # Dedicated labwc session avoids desktop display profiles overriding kiosk output.
-install -d /etc/manaar-labwc /usr/share/wayland-sessions /etc/lightdm/lightdm.conf.d
-printf '/usr/local/bin/manaar-kiosk &\n' > /etc/manaar-labwc/autostart
-cat > /usr/share/wayland-sessions/manaar.desktop <<'EOF'
+install -d /etc/manar-labwc /usr/share/wayland-sessions /etc/lightdm/lightdm.conf.d
+printf '/usr/local/bin/manar-kiosk &\n' > /etc/manar-labwc/autostart
+cat > /usr/share/wayland-sessions/manar.desktop <<'EOF'
 [Desktop Entry]
-Name=Manaar Kiosk
-Exec=labwc -C /etc/manaar-labwc
+Name=Manar Kiosk
+Exec=labwc -C /etc/manar-labwc
 Type=Application
 EOF
-cat > /etc/lightdm/lightdm.conf.d/99-manaar.conf <<EOF
+cat > /etc/lightdm/lightdm.conf.d/99-manar.conf <<EOF
 [Seat:*]
 autologin-user=$kiosk_user
 autologin-user-timeout=0
-autologin-session=manaar
-user-session=manaar
+autologin-session=manar
+user-session=manar
 EOF
 cmdline=/boot/firmware/cmdline.txt
 [[ -f $cmdline ]] || cmdline=/boot/cmdline.txt
 [[ -f $cmdline ]]
-[[ -f $cmdline.manaar-backup ]] || cp "$cmdline" "$cmdline.manaar-backup"
+[[ -f $cmdline.manar-backup ]] || cp "$cmdline" "$cmdline.manar-backup"
 python3 - "$cmdline" <<'PY'
 import pathlib, sys
 p = pathlib.Path(sys.argv[1])

@@ -1,4 +1,4 @@
-# Sonora
+# Manar
 
 A mosque prayer display built with Svelte 5, SvelteKit, TypeScript, and Tailwind CSS. Designed for a landscape screen or TV, it combines a daily prayer schedule, a clock and Hijri date, announcement media, and prayer countdown overlays.
 
@@ -103,7 +103,115 @@ speed. Missing or invalid datetime values fall back to the default `debugClock`;
 
 ## Raspberry Pi deployment
 
-See [Raspberry Pi setup](scripts/raspberry-pi/README.md) for kiosk autostart, forced 1080p, and daily Git updates with build checks and rollback.
+Follow these steps to install the app and open it fullscreen automatically at startup. The installer requires **64-bit Raspberry Pi OS Desktop with LightDM**; Lite is not supported. Installation paths and services use `manar`, the repository's deployment name.
+
+Already installed under the old `manaar` name? Follow the [migration steps](scripts/raspberry-pi/README.md#migrate-an-existing-manaar-installation) before running the renamed installer.
+
+### 1. Install Raspberry Pi OS
+
+Prepare a Raspberry Pi capable of running the 64-bit desktop OS, suitable power supply, microSD card or SSD, internet connection, keyboard/mouse, and HDMI display. Connect the display to HDMI0. The installer forces **1920x1080 at 60 Hz**, so your screen must support that mode.
+
+On your laptop/PC:
+
+1. Open [Raspberry Pi Imager](https://www.raspberrypi.com/software/).
+2. Select your Pi and **Raspberry Pi OS (64-bit) with Desktop**.
+3. Select the card/SSD; writing the image erases that selected storage.
+4. Set a hostname such as `manar-pi`, your username/password, Wi-Fi if needed, and your timezone. Enable SSH for maintenance after kiosk startup.
+5. Write the image, insert the storage into the Pi, and power it on.
+
+See the official [OS installation guide](https://www.raspberrypi.com/documentation/computers/getting-started.html) for the imaging and first-boot steps.
+
+### 2. Connect and prepare the Pi
+
+Open Terminal on the Pi, or connect from your laptop/PC. Replace `piuser` with the username you created:
+
+```sh
+ssh piuser@manar-pi.local
+```
+
+If the hostname does not resolve, use the Pi's IP address from your router. Run the following **on the Pi**:
+
+```sh
+uname -m
+sudo apt-get update
+sudo apt-get full-upgrade -y
+sudo apt-get install -y git
+sudo timedatectl set-timezone Asia/Jakarta
+sudo timedatectl set-ntp true
+sudo reboot
+```
+
+`uname -m` must print `aarch64`. Replace `Asia/Jakarta` with your mosque's timezone if different. Reconnect after reboot and run `timedatectl` to confirm the local time and clock synchronisation.
+
+### 3. Download and install the app
+
+Run on the Pi from your normal desktop user account:
+
+```sh
+cd ~
+git clone https://github.com/septiandch/manar.git
+cd ~/manar
+sudo bash scripts/raspberry-pi/setup.sh
+```
+
+If `~/manar` already exists, use `cd ~/manar` and `git pull --ff-only` instead of cloning again. Run setup through `sudo` as shown, not from a root login.
+
+The script installs Node 22, pnpm 10, Chromium, nginx, and build tools, builds the app, and configures services, desktop autologin, and the fullscreen kiosk. Wait until it prints `Setup complete`.
+
+The installer deploys the **remote repository's default branch**, not local uncommitted files. Commit and push any intended app changes from your development computer first. For a private repository, the separate `manar` service account also needs Git read access; see the [detailed setup guide](scripts/raspberry-pi/README.md#5-download-and-install-the-kiosk).
+
+### 4. Verify the server
+
+Before rebooting, run on the Pi:
+
+```sh
+systemctl is-active manar.service nginx.service manar-update.timer
+curl --fail http://localhost:5000/ -o /dev/null
+```
+
+Expect three `active` lines and a successful curl command. If a check fails, inspect the installer output and `journalctl -u manar.service -n 100 --no-pager` before continuing.
+
+### 5. Configure the mosque and media
+
+In the Pi's browser, open:
+
+- `http://localhost:5000/config` to save mosque details, coordinates, and prayer timing preferences.
+- `http://localhost:5000/upload` to upload and arrange images/videos.
+- `http://localhost:5000/` to check the display and current time. Keep `?debug` out of the kiosk URL.
+
+To configure it from your laptop/PC instead, run this **on that computer** and keep the terminal open:
+
+```sh
+ssh -N -L 5000:127.0.0.1:5000 piuser@manar-pi.local
+```
+
+Then visit the same `http://localhost:5000` URLs in your laptop's browser. Stop any local development server using port 5000 first. The Pi's app listens only on loopback, so direct access through `http://PI-IP:5000` will not work.
+
+The installer sets a 100 MiB request limit in nginx and the Node service. Keep uploaded files below that size to allow for multipart overhead, even though the app API allows 200 MiB per media file.
+
+### 6. Start the fullscreen display
+
+Run on the Pi:
+
+```sh
+sudo reboot
+```
+
+After boot, the Pi should log in automatically and open Chromium at `http://localhost:5000/`. Check the clock, prayer schedule, saved settings, and media. To edit settings later, reconnect the SSH tunnel from step 5.
+
+### 7. Updates and maintenance
+
+Daily Git update checks run at **03:00 local time**, with up to 15 minutes of random delay. To check manually, run on the Pi:
+
+```sh
+sudo systemctl start manar-update.service
+journalctl -u manar-update.service -n 100 --no-pager
+systemctl list-timers manar-update.timer
+```
+
+Updates build and check a new release before activation and restore the previous release if activation fails. Settings and uploads are kept in `/opt/manar/shared/data/` and `/opt/manar/shared/static/uploads/`; back these up. Existing checkout data is not imported automatically.
+
+See the [detailed Raspberry Pi guide](scripts/raspberry-pi/README.md) for backups, changing the update branch/time, private repository access, troubleshooting, and restoring normal desktop boot if the display stays blank. Actual boot and HDMI behaviour still require verification on your Pi.
 
 ## Production
 
