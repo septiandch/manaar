@@ -229,6 +229,32 @@ previous working release when cleaning up.
 
 ## Troubleshooting
 
+### Chromium still appears to use the old resolution
+
+Press Ctrl+0 in Chromium to reset page zoom to 100%. At 75% zoom, a 1920-pixel
+screen can expose a 2560-CSS-pixel page viewport even though HDMI is correctly
+set to 1080p. Press F11 twice if the fullscreen window needs resizing.
+
+The launcher uses native Wayland when available, so Chromium receives the
+compositor's output size and scale directly. It requests a 1920x1080 initial
+window and disables background mode so closing all Manar browser windows can
+fully end the browser process. Fullscreen dimensions still follow the compositor;
+the window-size flag does not set the monitor resolution or reset saved page zoom.
+
+After copying the updated files to the Pi, install the launcher and reboot:
+
+```sh
+sudo install -m 755 scripts/raspberry-pi/browser.sh /usr/local/bin/manar-browser
+sudo reboot
+```
+
+If the mismatch remains after Ctrl+0, inspect `wlr-randr` in a desktop terminal
+and check the current mode and scale. A desktop display profile may have changed
+them after startup. In Chromium's DevTools console, compare `screen.width`,
+`screen.height`, `innerWidth`, `innerHeight`, and `devicePixelRatio` to distinguish
+physical output settings from browser zoom/window sizing.
+
+
 ### Restore pages prompt after startup
 
 The launcher includes `--hide-crash-restore-bubble` to suppress Chromium's

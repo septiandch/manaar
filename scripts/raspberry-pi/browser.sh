@@ -15,10 +15,15 @@ done
 if [[ -x /usr/local/bin/manar-display ]]; then
   /usr/local/bin/manar-display || echo 'Display setup failed; opening Chromium with the current resolution.'
 fi
+# Use the compositor's current output size/scale instead of an XWayland screen.
+platform_args=()
+if [[ -n ${WAYLAND_DISPLAY:-} ]]; then
+  platform_args+=(--ozone-platform=wayland)
+fi
 # This dedicated display profile uses no system keyring. Do not save passwords in it.
 # Maximize as a fallback if the desktop does not honor the fullscreen request.
 # F11 exits fullscreen; Alt+F4 closes the browser.
-exec chromium --new-window --start-maximized --start-fullscreen --no-first-run \
+exec chromium "${platform_args[@]}" --window-size=1920,1080 --disable-background-mode --new-window --start-maximized --start-fullscreen --no-first-run \
   --password-store=basic \
   --hide-crash-restore-bubble \
   --autoplay-policy=no-user-gesture-required \
