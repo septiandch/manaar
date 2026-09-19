@@ -16,5 +16,6 @@ done
 # F11 exits fullscreen; Alt+F4 closes the browser.
 exec chromium --new-window --start-maximized --start-fullscreen --no-first-run \
   --password-store=basic \
+  --hide-crash-restore-bubble \
   --autoplay-policy=no-user-gesture-required \
   --user-data-dir="$HOME/.config/manar-browser" http://localhost:5000/

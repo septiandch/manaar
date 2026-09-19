@@ -199,6 +199,21 @@ previous working release when cleaning up.
 
 ## Troubleshooting
 
+### Restore pages prompt after startup
+
+The launcher includes `--hide-crash-restore-bubble` to suppress Chromium's
+"Restore pages?" prompt after an unclean shutdown. Once the updated files are on
+the Pi, run from the project checkout:
+
+```sh
+sudo install -m 755 scripts/raspberry-pi/browser.sh /usr/local/bin/manar-browser
+sudo reboot
+```
+
+This applies to Manar's browser launcher; other Chromium startup entries need
+their own flag. It hides the recovery prompt without deleting the browser profile.
+
+
 ### Small browser window or keyring prompt
 
 The launcher requests both maximized and fullscreen startup and uses
