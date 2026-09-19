@@ -2,7 +2,8 @@
 
 Manar runs under PM2 and is available on the Pi and other devices on the same
 local network. Chromium starts as an ordinary fullscreen window on the normal
-Raspberry Pi desktop. There is no dedicated kiosk session or forced display mode.
+Raspberry Pi desktop. There is no dedicated kiosk session. On Wayland, enabled HDMI outputs are set to
+1920x1080 before Chromium opens.
 
 ## 1. Prepare the Pi
 
@@ -136,7 +137,36 @@ fullscreen or **Alt+F4** to close it. PM2 keeps serving the app even if the brow
 is closed. Reopen with `manar-browser` in a graphical desktop terminal; do not run
 the browser with sudo or directly from an SSH/text-console session.
 
-Configure resolution and orientation using the normal desktop display settings.
+### Automatic HDMI resolution
+
+At desktop login, `manar-browser` runs `manar-display` before opening Chromium.
+It detects enabled HDMI outputs such as `HDMI-A-1` and `HDMI-A-2` using
+`wlr-randr`, then requests 1920x1080, scale 1, and landscape orientation for each.
+Disabled HDMI outputs and non-HDMI displays are left alone. An advertised 1080p
+mode is preferred; otherwise it tries a custom 1920x1080 at 60 Hz mode. The screen
+must physically support that signal. X11 sessions retain their desktop settings.
+
+For an existing installation, once the updated scripts are on the Pi, run from
+the checkout:
+
+```sh
+sudo apt-get install -y wlr-randr
+sudo install -m 755 scripts/raspberry-pi/display.sh /usr/local/bin/manar-display
+sudo install -m 755 scripts/raspberry-pi/browser.sh /usr/local/bin/manar-browser
+sudo reboot
+```
+
+A full setup rerun installs these automatically too. To try the resolution without
+rebooting, run `manar-display` as your normal user in a graphical desktop terminal.
+Do not run it with sudo or directly over SSH. Startup output is captured in
+`~/.local/state/manar/browser.log`. Failure is logged and Chromium still opens.
+The script runs at browser startup, not continuously on HDMI hotplug; desktop
+profile managers may subsequently override it.
+
+To disable forcing, run `sudo chmod -x /usr/local/bin/manar-display` and reboot,
+then use desktop display settings if needed. Rerunning setup reenables it.
+See the [wlr-randr manual](https://manpages.debian.org/trixie/wlr-randr/wlr-randr.1.en.html).
+
 Keep `?debug` out of the display URL to use the real clock.
 
 ## 6. PM2 management and updates

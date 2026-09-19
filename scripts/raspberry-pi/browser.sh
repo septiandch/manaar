@@ -11,6 +11,10 @@ flock -n 9 || exit 0
 until curl --fail --silent --max-time 2 http://localhost:5000/ >/dev/null; do
   sleep 2
 done
+# Apply resolution in the desktop session before the browser opens.
+if [[ -x /usr/local/bin/manar-display ]]; then
+  /usr/local/bin/manar-display || echo 'Display setup failed; opening Chromium with the current resolution.'
+fi
 # This dedicated display profile uses no system keyring. Do not save passwords in it.
 # Maximize as a fallback if the desktop does not honor the fullscreen request.
 # F11 exits fullscreen; Alt+F4 closes the browser.

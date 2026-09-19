@@ -113,7 +113,8 @@ keeps running. It does not use a dedicated kiosk desktop.
 Install **64-bit Raspberry Pi OS Desktop with LightDM** using
 [Raspberry Pi Imager](https://www.raspberrypi.com/software/). Lite is unsupported.
 Set your username, password, Wi-Fi, timezone, and enable SSH. Connect the display
-and boot the Pi. The installer uses the desktop's normal display resolution.
+and boot the Pi. On Wayland, the startup script detects enabled HDMI displays and requests
+1920x1080 with 100% scaling before opening Chromium.
 
 ### 2. Prepare the system
 

@@ -20,7 +20,7 @@ for candidate in LXDE-pi-labwc rpd-labwc LXDE-pi; do
 done
 [[ -n $desktop_session ]] || { echo 'No supported Raspberry Pi desktop session found.' >&2; exit 1; }
 apt-get update
-apt-get install -y git curl ca-certificates xz-utils build-essential python3 nginx chromium
+apt-get install -y git curl ca-certificates xz-utils build-essential python3 nginx chromium wlr-randr
 # Install the latest Node 22 binary from nodejs.org, verified against its checksum.
 temp=$(mktemp -d)
 trap 'rm -rf -- "$temp"' EXIT
@@ -49,6 +49,7 @@ install -d -o manar -g manar /opt/manar/releases /opt/manar/shared/data /opt/man
 chown manar:manar /opt/manar
 chmod 755 /opt/manar /opt/manar/shared /opt/manar/shared/static /opt/manar/shared/static/uploads
 install -m 755 "$source_dir/update.sh" /usr/local/bin/manar-update
+install -m 755 "$source_dir/display.sh" /usr/local/bin/manar-display
 install -m 755 "$source_dir/browser.sh" /usr/local/bin/manar-browser
 install -m 755 "$source_dir/kiosk.sh" /usr/local/bin/manar-kiosk
 if [[ ! -f /etc/manar.conf ]]; then
