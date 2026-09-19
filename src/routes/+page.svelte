@@ -10,8 +10,18 @@
 
 	let { data } = $props();
 
-	let { title, subtitle, carouselDuration, longitude, latitude, logo, media, hijriAdj, ...config } =
-		$derived(data);
+	let {
+		title,
+		subtitle,
+		carouselDuration,
+		longitude,
+		latitude,
+		logo,
+		media,
+		hijriAdj,
+		lanAddress,
+		...config
+	} = $derived(data);
 
 	let clockStore = $derived.by(() => {
 		if (!page.url.searchParams.has('debug')) return clock;
@@ -66,5 +76,13 @@
 		<PrayerSchedule {now} {prayerTimes} />
 	</div>
 </div>
+
+{#if lanAddress}
+	<span
+		class="pointer-events-none absolute right-8 bottom-0.5 font-mono text-[8px] text-white/50 select-none"
+	>
+		{lanAddress}{page.url.port ? `:${page.url.port}` : ''}
+	</span>
+{/if}
 
 <PrayerScreen {config} {clockStore} {prayerTimes} />

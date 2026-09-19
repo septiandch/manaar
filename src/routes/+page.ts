@@ -1,7 +1,8 @@
+import type { PageLoad } from './$types';
 import type { ConfigType } from '$lib/types/config';
 import type { CarouselMediaType } from '@/components/ui/carousel';
 
-export async function load({ fetch }) {
+export const load: PageLoad = async ({ fetch, data }) => {
 	let media: CarouselMediaType[] = [];
 	let config: ConfigType;
 
@@ -13,6 +14,7 @@ export async function load({ fetch }) {
 
 	return {
 		...config,
+		lanAddress: data.lanAddress,
 		media
 	};
-}
+};
