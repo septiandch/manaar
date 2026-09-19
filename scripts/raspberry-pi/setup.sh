@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# Include administration commands such as useradd, runuser, and nginx.
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 [[ $EUID == 0 ]] || { echo 'Run with sudo bash scripts/raspberry-pi/setup.sh' >&2; exit 1; }
 source_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 kiosk_user=${SUDO_USER:-}
@@ -23,7 +25,6 @@ archive=$(awk '$2 ~ /^node-v22\.[0-9]+\.[0-9]+-linux-arm64.tar.xz$/ {print $2}' 
 curl -fsS "https://nodejs.org/dist/latest-v22.x/$archive" -o "$temp/$archive"
 (cd "$temp"; grep " $archive\$" SHASUMS256.txt | sha256sum -c -)
 tar -xJf "$temp/$archive" -C /usr/local --strip-components=1
-export PATH=/usr/local/bin:/usr/bin:/bin
 npm install --global pnpm@10
 id manar >/dev/null 2>&1 || useradd --system --create-home --home-dir /opt/manar --shell /usr/sbin/nologin manar
 install -d -o manar -g manar /opt/manar/releases /opt/manar/shared/data /opt/manar/shared/static/uploads

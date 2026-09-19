@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+# Include administration commands such as useradd, runuser, and nginx.
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 source /etc/manar.conf
 exec 9>/opt/manar/update.lock
 flock -n 9 || exit 0
-export PATH=/usr/local/bin:/usr/bin:/bin
 export GIT_TERMINAL_PROMPT=0
 root=/opt/manar
 run() { runuser -u manar -- "$@"; }
