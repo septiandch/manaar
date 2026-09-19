@@ -7,7 +7,10 @@ exec 9>/opt/manar/update.lock
 flock -n 9 || exit 0
 export GIT_TERMINAL_PROMPT=0
 root=/opt/manar
-run() { runuser -u manar -- "$@"; }
+run() { runuser -u manar -- env HOME=/opt/manar PM2_HOME=/opt/manar/.pm2 "$@"; }
+activate() {
+  run pm2 startOrRestart /opt/manar/ecosystem.config.cjs --update-env
+}
 if [[ ! -d $root/repo.git ]]; then
   run git clone --bare "$REPOSITORY" "$root/repo.git"
 fi
@@ -34,9 +37,11 @@ cleanup() {
     if [[ -n $old ]]; then
       ln -sfn "$old" "$root/current.next"
       mv -Tf "$root/current.next" "$root/current"
-      systemctl restart manar.service || true
+      activate || true
+      run pm2 save || true
     else
-      systemctl stop manar.service || true
+      run pm2 delete manar || true
+      run pm2 save --force || true
       rm -f "$root/current"
     fi
   fi
@@ -76,9 +81,9 @@ done
 ln -sfn "$release" "$root/current.next"
 activated=1
 mv -Tf "$root/current.next" "$root/current"
-systemctl restart manar.service
+activate
 healthy 3000
-systemctl is-active --quiet manar.service
-# The kiosk watches this marker and reloads only after a successful activation.
+run pm2 save
+# Record the successfully activated release.
 printf '%s\n' "$commit" > "$root/shared/version"
 echo "Activated $commit"
