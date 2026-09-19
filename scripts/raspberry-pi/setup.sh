@@ -100,11 +100,12 @@ systemctl restart nginx.service
 systemctl start manar-update.timer
 # Dedicated labwc session avoids desktop display profiles overriding kiosk output.
 install -d /etc/manar-labwc /usr/share/wayland-sessions /etc/lightdm/lightdm.conf.d
-printf '/usr/local/bin/manar-kiosk &\n' > /etc/manar-labwc/autostart
+# Launch explicitly through labwc, rather than relying on autostart discovery.
+printf '# Kiosk is launched with labwc --startup.\n' > /etc/manar-labwc/autostart
 cat > /usr/share/wayland-sessions/manar.desktop <<'EOF'
 [Desktop Entry]
 Name=Manar Kiosk
-Exec=labwc -C /etc/manar-labwc
+Exec=labwc -C /etc/manar-labwc -s /usr/local/bin/manar-kiosk
 Type=Application
 EOF
 cat > /etc/lightdm/lightdm.conf.d/99-manar.conf <<EOF

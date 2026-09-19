@@ -387,3 +387,32 @@ Rename the repository on GitHub and push the renamed scripts before starting.
    directory and backup until you have verified the new installation. The Pi's
    hostname and your checkout folder do not change automatically; keep using
    your existing hostname for SSH unless you explicitly rename it.
+
+## Wallpaper appears but Chromium does not open
+
+The dedicated kiosk session has no desktop panel. If the app responds at
+`http://localhost:5000/` but the display remains blank, browser startup needs
+checking; rebooting repeatedly will not identify the cause.
+
+The session now explicitly starts the launcher using labwc's `-s` option.
+After transferring the updated scripts to your Pi, run these commands from the
+checkout to update only the kiosk launcher and session (no app rebuild needed):
+
+```sh
+sudo install -m 755 scripts/raspberry-pi/kiosk.sh /usr/local/bin/manar-kiosk
+sudo sed -i 's|^Exec=labwc .*|Exec=labwc -C /etc/manar-labwc -s /usr/local/bin/manar-kiosk|' /usr/share/wayland-sessions/manar.desktop
+sudo reboot
+```
+
+If the browser still does not open, log in through SSH or Ctrl+Alt+F2 as the same
+user used during setup and read:
+
+```sh
+tail -n 40 "${XDG_STATE_HOME:-$HOME/.local/state}/manar/kiosk.log"
+pgrep -af 'labwc|manar-kiosk|chromium'
+```
+
+If no log exists, the launcher may not have been invoked or could not create its
+log directory. Check the running session and LightDM logs. The launcher requires
+the graphical session's Wayland environment; do not start it directly from SSH or
+a text console. See [labwc startup options](https://labwc.github.io/labwc.1.html).

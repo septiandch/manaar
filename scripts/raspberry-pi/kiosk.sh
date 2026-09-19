@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 export PATH=/usr/local/bin:/usr/bin:/bin
+# Capture startup and Chromium errors even when no terminal is visible.
+log_dir=${XDG_STATE_HOME:-$HOME/.local/state}/manar
+mkdir -p "$log_dir"
+exec >>"$log_dir/kiosk.log" 2>&1
+printf '\nStarting Manar kiosk: %s\n' "$(date -Is)"
+: "${XDG_RUNTIME_DIR:?Start the kiosk inside the graphical desktop session}"
+: "${WAYLAND_DISPLAY:?The kiosk requires a Wayland desktop session}"
 exec 9>"$XDG_RUNTIME_DIR/manar-kiosk.lock"
 flock -n 9 || exit 0
 browser=
