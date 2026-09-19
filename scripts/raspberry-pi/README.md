@@ -199,6 +199,27 @@ previous working release when cleaning up.
 
 ## Troubleshooting
 
+### Small browser window or keyring prompt
+
+The launcher requests both maximized and fullscreen startup and uses
+`--password-store=basic` for its dedicated Manar browser profile. This avoids
+Chromium requesting the desktop keyring; do not store passwords in this profile,
+as basic storage does not provide keyring protection. Other browser profiles
+are unchanged. See [Chromium password storage](https://chromium.googlesource.com/chromium/src/+/HEAD/docs/linux/password_storage.md).
+
+After downloading the updated scripts, install only the browser launcher:
+
+```sh
+sudo install -m 755 scripts/raspberry-pi/browser.sh /usr/local/bin/manar-browser
+```
+
+Close the existing Manar Chromium window with Alt+F4, then run `manar-browser`
+from a graphical desktop terminal, or reboot. An already running browser profile
+may reuse its existing window and ignore startup flags. If the window is still
+small, focus Chromium and press F11 to enter fullscreen. This does not require
+reinstalling PM2 or changing the display resolution.
+
+
 For browser errors, as the desktop user:
 
 ```sh
